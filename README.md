@@ -1,48 +1,50 @@
-# EzCoroutine
+# Coroutine Implementation in Java
 
-This project demonstrates a coroutine-like implementation in Java using `ArrayList` and synchronization primitives (`wait()` and `notify()`). It allows the creation and management of coroutines where you can yield execution based on a condition, and resume execution after the condition is met.
+This project demonstrates a simplified coroutine-like implementation in Java using an interface-based approach. It provides an easy-to-use coroutine system where you can start and manage coroutines, allowing them to yield execution based on conditions.
 
 ## Features
 
-- **Coroutine-like behavior**: Yield execution and resume based on custom conditions.
-- **Simple API**: Easy to define coroutines using lambda expressions.
-- **Thread synchronization**: Manages threads using `synchronized`, `wait()`, and `notify()` to pause and resume execution.
+- **Simplified Coroutine API**: Easy to start and manage coroutines using `Runnable` and `Supplier<Boolean>`.
+- **No need for additional structures**: The `Coroutine` is implemented as an interface, simplifying usage and structure.
+- **Mutual exclusion**: Ensures that only one coroutine runs at any given time.
 
 ## How It Works
 
-The `Coroutine` class extends `ArrayList<Coroutine.Start>` to manage coroutines. Each coroutine is represented by a `Start` interface, which uses `Consumer<Supplier<Boolean>>` to yield execution until the given condition (in the form of a `Supplier<Boolean>`) is satisfied.
+The `Coroutine` interface provides three main methods to manage coroutines:
 
-- `start()`: Adds a new coroutine and starts its execution in a separate thread.
-- `update()`: Resumes the next coroutine in the list by calling `next()`.
+- `start(Runnable runnable)`: Starts a coroutine, which runs its logic in a separate thread.
+- `yield(Supplier<Boolean> condition)`: Allows a coroutine to yield execution until a condition is met.
+- `update()`: Wakes up the coroutine that is currently in a waiting state, allowing it to continue.
 
 ### Coroutine Example
 
 ```java
-public class Main {
+public class Main implements Coroutine {
     public static void main(String[] args) {
-        var coroutine = new Coroutine();
+        new Main();
+    }
 
-        // Coroutine that prints an incrementing number every second
-        coroutine.start(yield -> {
-            for (int i = 0; ; i++) {
-                var time = System.currentTimeMillis();
-                yield.accept(() -> System.currentTimeMillis() - time < 1000);
-                System.out.println(i);
-            }
-        });
+    public Main() {
+        start(this::coroutine1);  // Start first coroutine
+        start(this::coroutine2);  // Start second coroutine
+        for (;;) {
+            update();  // Continuously update coroutines
+        }
+    }
 
-        // Coroutine that prints a separator every 2 seconds
-        coroutine.start(yield -> {
-            for (;;) {
-                var time = System.currentTimeMillis();
-                yield.accept(() -> System.currentTimeMillis() - time < 2000);
-                System.out.println("-----");
-            }
-        });
+    public void coroutine1() {
+        for (int i = 0; ; i++) {
+            var time = System.currentTimeMillis();
+            yield(() -> System.currentTimeMillis() - time < 1000);  // Yield for 1 second
+            System.out.println(i);  // Print incrementing number
+        }
+    }
 
-        // Continuously update coroutines
-        for (; ; ) {
-            coroutine.update();
+    public void coroutine2() {
+        for (;;) {
+            var time = System.currentTimeMillis();
+            yield(() -> System.currentTimeMillis() - time < 2000);  // Yield for 2 seconds
+            System.out.println("-----");  // Print separator
         }
     }
 }
