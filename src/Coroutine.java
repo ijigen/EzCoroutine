@@ -1,27 +1,16 @@
-import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class Coroutine extends ArrayList<Coroutine.Start> {
-    public interface Start extends Consumer<Consumer<Supplier<Boolean>>> {
-        default void next() {
-            synchronized (this) {
-                notify();
-            }
-        }
-    }
-    public void start(Start start) {
+public class Coroutine {
+    public void start(Consumer<Consumer<Supplier<Boolean>>> s) {
         synchronized (this) {
-            add(start);
             new Thread(() -> {
-                start.accept(yield -> {
+                s.accept(yield -> {
                     do {
-                        synchronized (start) {
-                            synchronized (this) {
-                                notify();
-                            }
+                        synchronized (this) {
+                            notify();
                             try {
-                                start.wait();
+                                wait();
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
                             }
@@ -39,7 +28,10 @@ public class Coroutine extends ArrayList<Coroutine.Start> {
             }
         }
     }
+
     public void update() {
-        forEach(Start::next);
+        synchronized (this) {
+            notify();
+        }
     }
 }
