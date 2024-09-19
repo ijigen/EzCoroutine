@@ -1,4 +1,3 @@
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public interface Coroutine {
@@ -34,6 +33,11 @@ public interface Coroutine {
     default void update() {
         synchronized (this) {
             notify();
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
