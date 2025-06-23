@@ -14,7 +14,7 @@ public class Main implements Coroutine {
     public void coroutine1() {
         for (int i = 0; ; i++) {
             var time = System.currentTimeMillis();
-            yield(() -> System.currentTimeMillis() - time < 1000);
+            ezYield(() -> System.currentTimeMillis() - time < 1000);
             System.out.println(i);
         }
     }
@@ -22,7 +22,7 @@ public class Main implements Coroutine {
     public void coroutine2() {
         for (; ; ) {
             var time = System.currentTimeMillis();
-            yield(() -> System.currentTimeMillis() - time < 2000);
+            ezYield(() -> System.currentTimeMillis() - time < 2000);
             System.out.println("-----");
         }
     }

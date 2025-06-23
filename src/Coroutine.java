@@ -3,12 +3,12 @@ import java.util.function.Supplier;
 public interface Coroutine {
     default void start(Runnable runnable) {
         synchronized (this) {
-            new Thread(() -> {
+            Thread.startVirtualThread(() -> {
                 runnable.run();
                 synchronized (this) {
                     notify();
                 }
-            }).start();
+            });
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -17,7 +17,7 @@ public interface Coroutine {
         }
     }
 
-    default void yield(Supplier<Boolean> yield) {
+    default void ezYield(Supplier<Boolean> yield) {
         do {
             synchronized (this) {
                 notify();
